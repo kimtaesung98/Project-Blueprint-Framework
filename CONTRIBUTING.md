@@ -1,95 +1,128 @@
 # Contributing — 에이전트 행동 강령
 
-> 이 파일은 **Claude Code를 포함한 모든 AI 에이전트**가 이 레포지토리에서 작업할 때 반드시 따라야 하는 규칙입니다.  
-> 인간 기여자도 동일한 규칙을 따릅니다.
+> 이 파일은 **Claude Code를 포함한 모든 AI 에이전트**가 이 레포지토리에서 작업할 때 반드시 따라야 하는 규칙입니다.
 
 ---
 
-## 에이전트 필수 행동 순서
+## 세션 시작 시 — 어떤 파일을 읽어야 하는가?
 
-### 작업 시작 전
+```
+AGENT_BOOTSTRAP.md가 존재하는가?
+        │
+       YES → §1 최초 초기화 프로토콜 실행
+        │
+        NO → AGENT_STATE.md가 존재하는가?
+                    │
+                   YES → §2 일반 세션 프로토콜 실행
+                    │
+                    NO → 사용자에게 문의 (비정상 상태)
+```
 
-1. **작업 대상 폴더의 `README.md`를 읽는다**
-   - `Agent Control` 섹션의 허용/금지/필수 규칙을 숙지한다
-   - `DFD`를 보고 이 폴더의 데이터 흐름을 파악한다
-   - `Progress Tracker`를 보고 이미 구현된 기능과 미구현 기능을 확인한다
+---
 
-2. **루트 `BLUEPRINT.md`를 참조한다** (첫 세션 또는 구조 변경 시)
+## §1. 최초 초기화 프로토콜 (AGENT_BOOTSTRAP.md 존재 시)
 
-3. **수정할 기능의 `Progress Tracker` 상태를 `🔄 In Progress`로 변경한다**
+> 이 프로토콜은 프로젝트 생애 **딱 한 번**만 실행됩니다.
+
+1. `AGENT_BOOTSTRAP.md` 전체를 읽는다
+2. 루트 `README.md`의 Progress Tracker와 Next Roadmap을 읽는다
+3. `AGENT_BOOTSTRAP.md §5`의 지시에 따라 `AGENT_STATE.md`를 생성한다
+4. `AGENT_BOOTSTRAP.md`를 **삭제**한다
+5. 사용자에게 초기화 완료를 보고하고 작업 지시를 기다린다
+
+**이후 모든 세션은 §2 프로토콜만 따릅니다. BLUEPRINT.md는 읽지 않습니다.**
+
+---
+
+## §2. 일반 세션 프로토콜 (매 세션, AGENT_STATE.md 존재 시)
+
+### 세션 시작 (읽기)
+
+1. `AGENT_STATE.md` 전체를 읽는다
+   - **누적 사용자 요구사항** → 이미 처리된 것 확인, 중복 방지
+   - **현재 작업 상태** → 이어받을 Feature 파악
+   - **다음 할 일** → 이번 세션의 작업 범위 확인
+   - **핵심 규칙 스냅샷** → 이번 세션에 적용할 제약 확인
+   - **세션 로그** → 직전 세션 인계 사항 확인
+
+2. 사용자의 이번 세션 요청을 받는다
+
+3. 요청이 **누적 사용자 요구사항**에 이미 있으면 → 완료 여부 확인 후 불필요한 재작업 방지
 
 ### 작업 중
 
-4. **`Agent Control`의 금지 규칙을 코드 생성 전 한 번 더 확인한다**
+4. 작업 대상 폴더의 `README.md`를 읽는다 (DFD + Agent Control 확인)
+5. Agent Control **금지 규칙** 위반 여부 확인 후 코드 작성
+6. 구조 변경 시 → 해당 레벨부터 루트까지 DFD 연쇄 업데이트
 
-5. **새 파일 생성 시, 해당 폴더의 `README.md`가 없으면 `templates/README_TEMPLATE.md`를 기반으로 생성한다**
+### 세션 종료 (갱신)
 
-### 작업 완료 후
+7. 루트 `README.md` **Progress Tracker** 업데이트 (🔄 시작, ✅ 완료)
+8. 루트 `README.md` **Next Roadmap** 갱신
+9. `AGENT_STATE.md`를 아래 순서로 갱신한다:
 
-6. **`Progress Tracker`를 업데이트한다**
-   - 완료된 기능: `✅ Done` + `Last Updated` 오늘 날짜
-   - 새로 발견된 작업: 새 행 추가 (`⏳ Pending`)
-
-7. **`Next Roadmap`을 갱신한다** (다음으로 해야 할 작업 순서 명시)
-
-8. **구조적 변경이 발생했다면 `DFD`를 업데이트한다**
-   - 새 외부 의존성 추가
-   - 새 데이터 흐름 경로 생성
-   - 기존 흐름 변경
+```
+a. 누적 사용자 요구사항  → 이번 세션에서 처리한 새 요구사항 행 추가
+b. 현재 작업 상태        → 루트 Tracker 내용과 동기화
+c. 다음 할 일            → 루트 Roadmap 내용과 동기화
+d. 핵심 규칙 스냅샷      → 새로 추가/변경된 규칙 반영
+e. 세션 로그             → 오늘 날짜, 수행 작업, 변경 파일, 인계 사항 기록
+                           (10개 초과 시 가장 오래된 행 삭제)
+```
 
 ---
 
-## 절대 금지 행동
+## §3. AGENT_STATE.md 갱신 상세 규칙
+
+### 누적 사용자 요구사항 — 언제 추가하는가
+
+- 사용자가 새로운 구조적 요청을 하고 이를 반영 완료했을 때
+- 새로운 Agent Control 규칙이 추가되었을 때
+- 폴더 구조가 변경되었을 때
+
+> 사소한 버그 수정이나 단순 코드 변경은 추가하지 않습니다.  
+> "이 프로젝트의 방향과 규칙에 영향을 주는 결정"만 기록합니다.
+
+### Progress Snapshot — 동기화 기준
+
+- 루트 `README.md` Tracker와 **항상 동일**해야 합니다
+- 세션 종료 전 두 파일을 비교해 불일치가 없는지 확인합니다
+
+### 세션 로그 — 기록 형식
+
+```markdown
+| 2026-05-18 | DFD 레벨링 적용, 폴더 소유권 모델 정의 | BLUEPRINT.md, templates/* | 하위 폴더 DFD 연쇄 업데이트 미완료 |
+```
+
+---
+
+## §4. 절대 금지 행동
 
 | 금지 행동 | 이유 |
 |-----------|------|
-| `Agent Control`의 금지 규칙 위반 | 아키텍처 원칙 붕괴 |
-| `Progress Tracker` 미업데이트 작업 완료 | 맥락 정보 소실 |
-| `DFD` 미업데이트 구조 변경 | 에이전트/개발자 오해 유발 |
-| 폴더 `README.md` 미확인 작업 시작 | 중복 구현, 규칙 위반 |
-| 테스트 없이 `✅ Done` 마킹 | 허위 진행 현황 |
+| 매 세션 `BLUEPRINT.md` 전체 읽기 | 불필요한 토큰 낭비 |
+| `AGENT_BOOTSTRAP.md` 삭제 없이 세션 종료 | 다음 세션이 중복 초기화 실행 |
+| `AGENT_STATE.md` 미갱신 세션 종료 | 맥락 단절, 다음 세션이 처음부터 재파악 |
+| `AGENT_STATE.md`에 코드 내용 기록 | 파일 비대화, 토큰 낭비 |
+| 이미 처리된 요구사항 재처리 | 누적 사용자 요구사항 미확인에서 발생 |
+| `Progress Snapshot`과 루트 Tracker 불일치 유지 | 맥락 오염 |
 
 ---
 
-## 문서 업데이트 기준
-
-### DFD를 업데이트해야 하는 경우
-- 새로운 외부 API 또는 DB 연결 추가
-- 데이터 처리 순서 변경
-- 새 모듈/서비스 간 의존성 생성
-- 기존 흐름 제거 또는 우회
-
-### Progress Tracker를 업데이트해야 하는 경우
-- 작업 시작 시 (`🔄 In Progress`)
-- 작업 완료 시 (`✅ Done`)
-- 블로커 발견 시 (`❌ Blocked` + Notes에 이유 기재)
-- 새 작업 항목 발견 시 (새 행 추가, `⏳ Pending`)
-
-### README.md를 새로 생성해야 하는 경우
-- 새 폴더 생성 시
-- `templates/README_TEMPLATE.md`를 복사해 해당 폴더 맥락에 맞게 작성
-
----
-
-## 커밋 메시지 규칙
+## §5. 커밋 메시지 규칙
 
 ```
 <type>(<scope>): <description>
-
-[optional body]
-[optional footer]
 ```
 
 | Type | 사용 시점 |
 |------|-----------|
 | `feat` | 새 기능 추가 |
 | `fix` | 버그 수정 |
-| `docs` | 문서만 수정 (README, DFD, Progress Tracker 등) |
-| `refactor` | 기능 변경 없는 코드 구조 개선 |
-| `test` | 테스트 추가/수정 |
-| `chore` | 빌드, 의존성 등 기타 변경 |
+| `docs` | 문서 수정 (README, DFD, AGENT_STATE 등) |
+| `refactor` | 기능 변경 없는 구조 개선 |
+| `chore` | 빌드, 의존성 등 기타 |
 
-**에이전트는 Progress Tracker 업데이트를 별도 `docs` 커밋으로 분리하거나,  
-기능 커밋에 포함해 메시지에 명시합니다.**
+**AGENT_STATE.md 갱신은 기능 커밋에 포함하거나 `docs` 커밋으로 분리합니다.**
 
-예: `feat(auth): add refresh token endpoint + update progress tracker`
+예: `feat(auth): add JWT refresh endpoint + update agent state`

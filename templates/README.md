@@ -71,9 +71,18 @@ flowchart LR
 
 ## 파일 목록
 
+### 에이전트 세션 관리 (Agent Session Files)
+
+| 파일 | 용도 | 수명 |
+|------|------|------|
+| `AGENT_BOOTSTRAP.md` | 최초 1회 읽고 삭제하는 초기화 파일 — 전체 규칙 요약 + AGENT_STATE 생성 지시 | **일회용** (읽고 즉시 삭제) |
+| `AGENT_STATE.md` | 매 세션 읽고 갱신하는 경량 상태 파일 — 누적 요구사항·진행 현황·세션 로그 | **영구 유지** (세션마다 갱신) |
+
+### 폴더 README 템플릿 (Folder README Templates)
+
 | 파일 | 용도 | 사용 수준 |
 |------|------|-----------|
 | `README_TEMPLATE_TOP.md` | Progress Tracker·Roadmap을 소유하는 최상위 폴더용 | 루트 또는 도메인 최상위 |
 | `README_TEMPLATE_SUB.md` | Context·DFD·Agent Control만 갖는 하위 폴더용 | Level 1, 2, 3+ 모든 하위 |
+| `FOLDER_CHECKLIST.md` | 새 폴더 생성 시 4단계 체크리스트 (유형 결정 → 항목 확인 → 상위 업데이트) | 폴더 생성 시마다 |
 | `README_TEMPLATE.md` | (구버전) 레벨 미지정 범용 템플릿 — 신규 사용 비권장 | — |
-| `FOLDER_CHECKLIST.md` | 새 폴더 생성 시 4단계 체크리스트 | 폴더 생성 시마다 |
