@@ -15,17 +15,19 @@ flowchart LR
     Developer([Developer\n또는 Agent])
 
     subgraph Templates ["templates/ 내부"]
-        CHKL["FOLDER_CHECKLIST.md\n(완성도 검증 안내)"]
-        TMPL["README_TEMPLATE.md\n(표준 구조 제공)"]
+        CHKL["FOLDER_CHECKLIST.md\n(4단계 체크리스트)"]
+        TMPL_TOP["README_TEMPLATE_TOP.md\n(소유자 폴더용)"]
+        TMPL_SUB["README_TEMPLATE_SUB.md\n(하위 폴더용)"]
     end
 
-    Developer -->|"① 새 폴더 생성 결정"| CHKL
-    CHKL -->|"② 8단계 체크리스트 제공"| Developer
-    Developer -->|"③ 템플릿 복사 요청"| TMPL
-    TMPL -->|"④ [[ ]] 플레이스홀더 포함\n표준 README 골격 제공"| NewREADME["[새 폴더]/README.md\n(Level N+1 DFD 작성 대상)"]
-    NewREADME -->|"⑤ 폴더 맥락 채우기"| Developer
-    NewREADME -->|"⑥ 에이전트 컨텍스트 제공"| Agent([AI Agent Session])
-    Agent -->|"⑦ Progress Tracker 업데이트"| NewREADME
+    Developer -->|"① 새 폴더 생성\nStep1: 유형 결정"| CHKL
+    CHKL -->|"최상위 폴더"| TMPL_TOP
+    CHKL -->|"하위 폴더"| TMPL_SUB
+    TMPL_TOP -->|"② Progress Tracker\n+ Roadmap 포함"| TopREADME["[최상위]/README.md\n(Level 0 DFD · 진행도 소유)"]
+    TMPL_SUB -->|"③ Context + DFD만"| SubREADME["[하위]/README.md\n(Level N DFD · 흐름 상세화)"]
+    TopREADME -->|"④ 작업 정의 전달"| Agent([AI Agent Session])
+    SubREADME -->|"⑤ 구현 흐름 제공"| Agent
+    Agent -->|"⑥ 작업 완료 후\nTracker 업데이트"| TopREADME
 ```
 
 ---
@@ -61,18 +63,17 @@ flowchart LR
 
 ---
 
-## Progress Tracker
+<!--
+  이 폴더(templates/)는 하위 폴더이므로 Progress Tracker와 Roadmap을 갖지 않습니다.
+  진행도는 루트 README.md의 Progress Tracker에서 관리됩니다.
+  아래는 이 폴더가 제공하는 파일 목록과 각 파일의 용도입니다.
+-->
 
-| Feature | Status | Assignee | Last Updated | Notes |
-|---------|--------|----------|--------------|-------|
-| README_TEMPLATE.md 기본 구조 | ✅ Done | Agent | 2026-05-18 | 레벨링 표기 포함 |
-| FOLDER_CHECKLIST.md | ✅ Done | Agent | 2026-05-18 | 5가지 검증 질문 포함 |
-| 기술 스택별 특화 템플릿 | ⏳ Pending | - | - | React / Python / Node.js 등 |
+## 파일 목록
 
----
-
-## Next Roadmap
-
-1. React 프로젝트용 특화 템플릿 (`README_TEMPLATE_REACT.md`) 작성
-2. Python 데이터 파이프라인용 특화 템플릿 작성
-3. `FOLDER_CHECKLIST.md`에 DFD 레벨 일관성 검증 항목 추가
+| 파일 | 용도 | 사용 수준 |
+|------|------|-----------|
+| `README_TEMPLATE_TOP.md` | Progress Tracker·Roadmap을 소유하는 최상위 폴더용 | 루트 또는 도메인 최상위 |
+| `README_TEMPLATE_SUB.md` | Context·DFD·Agent Control만 갖는 하위 폴더용 | Level 1, 2, 3+ 모든 하위 |
+| `README_TEMPLATE.md` | (구버전) 레벨 미지정 범용 템플릿 — 신규 사용 비권장 | — |
+| `FOLDER_CHECKLIST.md` | 새 폴더 생성 시 4단계 체크리스트 | 폴더 생성 시마다 |

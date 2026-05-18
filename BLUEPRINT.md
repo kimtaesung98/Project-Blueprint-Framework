@@ -50,7 +50,8 @@ flowchart TD
    - [3-1. DFD 레벨링 규칙](#3-1-dfd-레벨링-규칙)
 4. [Progress Tracker 규칙](#4-progress-tracker-규칙)
 5. [Agent Control 섹션 규칙](#5-agent-control-섹션-규칙)
-6. [전체 적용 예시](#6-전체-적용-예시)
+6. [폴더 소유권 모델](#6-폴더-소유권-모델)
+7. [전체 적용 예시](#7-전체-적용-예시)
 
 ---
 
@@ -292,7 +293,89 @@ flowchart LR
 
 ---
 
-## 6. 전체 적용 예시
+## 6. 폴더 소유권 모델
+
+### 핵심 원칙
+
+> **"무엇을 해야 하나(What)"는 상위에서만 정의하고,**  
+> **"어떻게 흐르는가(How)"는 하위로 내려갈수록 상세해진다.**
+
+Progress Tracker와 Roadmap은 **최상위 폴더(소유자)에만 존재**합니다.  
+하위 폴더는 상위의 정의를 참조하며, DFD를 통해 자신의 구현 흐름을 상세화합니다.
+
+### 폴더 유형별 README 구성
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📁 최상위 폴더 (소유자)                                      │
+│     템플릿: README_TEMPLATE_TOP.md                           │
+│                                                             │
+│     ✅ DFD — Level 0 (Context)    ← 시스템 경계 정의         │
+│     ✅ Tech Stack                 ← 전체 스택 정의            │
+│     ✅ Agent Control              ← 전체 시스템 규칙 (최상위) │
+│     ✅ Sub-folder Map             ← 하위 폴더 ↔ Feature 매핑  │
+│     ✅ Progress Tracker           ← 유일한 진행도 정의        │
+│     ✅ Next Roadmap               ← 유일한 방향성 정의        │
+└──────────────────┬──────────────────────────────────────────┘
+                   │  DFD 분해(Decompose) + 작업 위임
+┌──────────────────▼──────────────────────────────────────────┐
+│  📁 1단계 하위 폴더                                           │
+│     템플릿: README_TEMPLATE_SUB.md                          │
+│                                                             │
+│     ✅ Context (상위 Tracker 항목 참조)  ← 상위와 연결        │
+│     ✅ DFD — Level 1 (Main Processes)  ← 상위 버블 분해      │
+│     ✅ Tech Stack (추가분만)                                  │
+│     ✅ Agent Control (상위 규칙 상속 + 추가)                  │
+│     ❌ Progress Tracker 없음            ← 상위가 소유         │
+│     ❌ Next Roadmap 없음               ← 상위가 소유          │
+└──────────────────┬──────────────────────────────────────────┘
+                   │  DFD 분해(Decompose)
+┌──────────────────▼──────────────────────────────────────────┐
+│  📁 2단계 하위 폴더                                           │
+│     템플릿: README_TEMPLATE_SUB.md (동일)                   │
+│                                                             │
+│     ✅ Context (1단계 DFD 버블 참조)    ← 1단계와 연결        │
+│     ✅ DFD — Level 2 (Detailed)       ← Level 1 버블 분해    │
+│     ✅ Tech Stack (추가분만)                                  │
+│     ✅ Agent Control (상속 + 추가)                            │
+│     ❌ Progress Tracker 없음                                  │
+│     ❌ Next Roadmap 없음                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 에이전트 작업 흐름
+
+```
+① 최상위 README.md 열기
+   └─ Progress Tracker에서 작업할 Feature 확인
+   └─ Roadmap에서 어느 하위 폴더가 담당인지 확인
+         │
+② 담당 하위 폴더 README.md 열기
+   └─ Context 섹션: 상위 흐름에서 내 위치 파악
+   └─ DFD: 이 폴더 내부의 구현 흐름 파악
+   └─ Agent Control: 이 폴더의 제약 확인
+         │
+③ 코드 작업
+         │
+④ 최상위 README.md로 돌아와
+   └─ Progress Tracker 업데이트 (🔄 → ✅)
+   └─ Next Roadmap 갱신
+```
+
+### 새 외부 의존성 발생 시 연쇄 업데이트 규칙
+
+하위 폴더에서 상위 DFD에 없는 외부 시스템과 연결이 생기면:
+
+```
+Level 2 DFD 업데이트 (새 노드 추가)
+    → Level 1 DFD 업데이트 (버블의 입출력 화살표 반영)
+        → Level 0 DFD 업데이트 (외부 시스템 노드 추가)
+            → 최상위 Progress Tracker Notes에 의존성 기재
+```
+
+---
+
+## 7. 전체 적용 예시
 
 아래는 `src/auth/` 폴더의 완성된 `README.md` 예시입니다.
 
