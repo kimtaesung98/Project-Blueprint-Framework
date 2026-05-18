@@ -26,9 +26,10 @@ AGENT_BOOTSTRAP.md가 존재하는가?
 
 1. `AGENT_BOOTSTRAP.md` 전체를 읽는다
 2. 루트 `README.md`의 Progress Tracker와 Next Roadmap을 읽는다
-3. `AGENT_BOOTSTRAP.md §5`의 지시에 따라 `AGENT_STATE.md`를 생성한다
-4. `AGENT_BOOTSTRAP.md`를 **삭제**한다
-5. 사용자에게 초기화 완료를 보고하고 작업 지시를 기다린다
+3. 루트에 `CLAUDE.md`가 없으면 `templates/CLAUDE_TEMPLATE.md`를 복사해 생성한다
+4. `AGENT_BOOTSTRAP.md §5`의 지시에 따라 `AGENT_STATE.md`를 생성한다
+5. `AGENT_BOOTSTRAP.md`를 **삭제**한다
+6. 사용자에게 보고: `"초기화 완료. CLAUDE.md + AGENT_STATE.md 생성. 이후 세션은 CLAUDE.md가 자동 로딩됩니다."`
 
 **이후 모든 세션은 §2 프로토콜만 따릅니다. BLUEPRINT.md는 읽지 않습니다.**
 

@@ -71,22 +71,52 @@ AI 에이전트는 단일 파일 수준에서는 탁월한 성능을 보이지�
 Blueprint Framework는 **각 폴더의 `README.md`를 에이전트의 컨텍스트 문서로 활용**합니다.  
 에이전트가 작업 전 이 문서를 읽도록 강제함으로써 위 문제를 구조적으로 차단합니다.
 
+### 프레임워크 구성 파일
+
+| 파일 | 역할 | 읽는 시점 |
+|------|------|-----------|
+| `CLAUDE.md` | Claude Code 자동 로딩 — 세션 프로토콜·핵심 규칙 | **매 세션 자동** |
+| `AGENT_STATE.md` | 누적 요구사항·진행 상태·세션 로그 | 매 세션 수동 (CLAUDE.md 지시) |
+| `AGENT_BOOTSTRAP.md` | 최초 1회 초기화 — 전체 규칙 요약, STATE 생성 지시 | **최초 1회 후 삭제** |
+| `[폴더]/README.md` | 폴더별 Context·DFD·Agent Control | 작업 대상 폴더 진입 시 |
+| `BLUEPRINT.md` | 프레임워크 전체 명세 (이 파일) | **세션 중 읽지 않음** |
+| `CONTRIBUTING.md` | 상세 프로토콜·드리프트 감지·팀 규칙 | **세션 중 읽지 않음** |
+
 ---
 
 ## 2. 폴더 README 구조 명세
 
-모든 폴더의 `README.md`는 아래 섹션을 순서대로 포함해야 합니다:
+폴더 유형에 따라 **두 가지 구조** 중 하나를 사용합니다.  
+유형 결정은 `templates/FOLDER_CHECKLIST.md Step 1`을 참고하세요.
+
+### 최상위(소유자) 폴더 — `README_TEMPLATE_TOP.md` 사용
+
+Progress Tracker와 Roadmap을 **소유**하는 폴더입니다.
 
 ```
-## [폴더명] Overview          # 이 폴더의 책임 범위 (1~3문장)
-## DFD (Data Flow Diagram)   # mermaid 차트로 입출력 흐름 시각화
-## Tech Stack                # 사용 기술/라이브러리 목록
-## Agent Control             # 에이전트 행동 제약 규칙
-## Progress Tracker          # 기능 구현 현황 테이블
-## Next Roadmap              # 다음 작업 항목
+## [시스템명] Overview         # 시스템 전체 책임 (1~2문장)
+## DFD — Level 0 (Context)    # 시스템을 단일 버블로, 외부 액터만 표시
+## Tech Stack                  # 전체 스택 정의
+## Agent Control               # 전체 시스템 최상위 제약 (하위 상속)
+## Sub-folder Map              # 하위 폴더 ↔ Feature 매핑 테이블
+## Progress Tracker            # ← 진행도 유일 정의 지점
+## Next Roadmap                # ← 방향성 유일 정의 지점
 ```
 
-각 섹션의 작성 규칙은 아래에서 설명합니다.
+### 하위(실행자) 폴더 — `README_TEMPLATE_SUB.md` 사용
+
+DFD로 구현 흐름을 상세화하는 폴더입니다. **Tracker·Roadmap 없음.**
+
+```
+## [폴더명] Overview           # 이 폴더의 책임 (1~2문장)
+## Context — 상위 흐름과의 연결 # 상위 Tracker 항목 참조 + 입출력 명시
+## DFD — Level N (레벨명)      # 상위 버블을 분해한 상세 흐름
+## Tech Stack                  # 상위에서 미명시된 추가 스택만
+## Agent Control               # 상위 규칙 상속 + 이 폴더 추가 제약
+```
+
+> ⚠️ 에이전트는 BLUEPRINT.md를 세션 중 읽지 않습니다.  
+> 세션 시작 시 `CLAUDE.md` → `AGENT_STATE.md` → 작업 대상 폴더 `README.md` 순으로만 읽습니다.
 
 ---
 
@@ -144,6 +174,36 @@ mermaid `flowchart` 또는 `sequenceDiagram`을 사용해 이 폴더가 처리�
                               ▼ Decompose
 /templates/partials (Level 2)
 └─ [ DFD 섹션 생성 ] → [ Tracker 섹션 생성 ] → [ Control 섹션 생성 ] ── 내부 상세
+                              │
+                              ▼ Decompose
+/templates/partials/dfd (Level 3)
+└─ [ mermaid 파싱 ] → [ 노드 추출 ] → [ 화살표 검증 ] ── 함수 수준
+```
+
+#### Level 3+ 작성 지침
+
+Level 3부터는 **함수/컴포넌트 단위**로 DFD를 그립니다.  
+모든 폴더가 Level 3 DFD를 가질 필요는 없습니다 — 아래 조건일 때만 작성합니다:
+
+- 이 폴더 내부에 **5개 이상의 함수/클래스**가 상호작용하는 경우
+- 에이전트가 반복적으로 이 폴더에서 버그를 발생시킨 경우
+- 보안·성능상 흐름이 정확해야 하는 폴더 (인증, 결제, 암호화 등)
+
+Level 3+ DFD는 `sequenceDiagram`을 사용해도 됩니다:
+
+```mermaid
+sequenceDiagram
+    participant Req as HTTP Request
+    participant Val as Validator
+    participant Svc as AuthService
+    participant DB as PostgreSQL
+    Req->>Val: credentials
+    Val-->>Req: 400 (invalid)
+    Val->>Svc: validated data
+    Svc->>DB: SELECT user
+    DB-->>Svc: user record
+    Svc-->>Req: 401 (wrong password)
+    Svc-->>Req: 200 + token
 ```
 
 ---
@@ -377,63 +437,163 @@ Level 2 DFD 업데이트 (새 노드 추가)
 
 ## 7. 전체 적용 예시
 
-아래는 `src/auth/` 폴더의 완성된 `README.md` 예시입니다.
+Node.js API 프로젝트를 기준으로 **루트(TOP) + 하위(SUB)** 두 파일을 함께 보여줍니다.
 
 ---
+
+### 예시 A — 루트 `README.md` (최상위, TOP 유형)
+
+```markdown
+# my-api — Overview
+
+사용자 인증과 게시물 관리를 제공하는 REST API 서버입니다.
+
+---
+
+## DFD — Level 0 (Context Diagram)
+
+```mermaid
+flowchart LR
+    Client([Client]) -->|HTTP| API["my-api\n(Level 0)"]
+    API -->|query| DB[(PostgreSQL)]
+    API -->|cache| Cache[(Redis)]
+    API -->|response| Client
+```
+
+## Tech Stack
+- Node.js 20 / Express 4 / TypeScript 5
+- PostgreSQL 16, Redis 7
+
+## Agent Control
+### 금지
+- 환경변수를 코드에 하드코딩 금지
+- DB 직접 쿼리를 라우터에서 작성 금지 (Service 레이어 경유)
+### 필수
+- 새 외부 의존성 추가 시 이 DFD와 담당 하위 DFD 동시 업데이트
+
+## Sub-folder Map
+| 폴더 | DFD 레벨 | 담당 Tracker 항목 |
+|------|----------|--------------------|
+| `/src/auth` | Level 1 | JWT 발급, JWT 검증, Refresh Token |
+| `/src/posts` | Level 1 | 게시물 CRUD |
+
+## Progress Tracker
+| Feature | Status | Owner Folder | Last Updated | Notes |
+|---------|--------|--------------|--------------|-------|
+| JWT 발급 | ✅ Done | `/src/auth` | 2026-01-10 | RS256 |
+| JWT 검증 미들웨어 | ✅ Done | `/src/auth` | 2026-01-10 | |
+| Refresh Token | 🔄 In Progress | `/src/auth` | 2026-01-12 | Redis 연동 필요 |
+| OAuth Google | ⏳ Pending | `/src/auth` | - | |
+| 게시물 CRUD | ⏳ Pending | `/src/posts` | - | |
+
+## Next Roadmap
+1. Refresh Token 엔드포인트 완성 → `/src/auth`
+2. 게시물 CRUD 구현 → `/src/posts`
+```
+
+---
+
+### 예시 B — `src/auth/README.md` (하위, SUB 유형)
 
 ```markdown
 # auth — Overview
 
-사용자 인증 및 세션 관리를 담당합니다.  
-JWT 발급/검증, OAuth 콜백 처리, 미들웨어 제공이 이 폴더의 책임입니다.
+> **상위 작업 연결**: 루트 `README.md` Tracker의
+> `JWT 발급`, `JWT 검증 미들웨어`, `Refresh Token` 항목을 구현합니다.
+
+JWT 발급/검증, Refresh Token, OAuth 콜백 처리를 담당합니다.
 
 ---
 
-## DFD (Data Flow Diagram)
+## Context — 상위 흐름과의 연결
+
+```
+루트(/) — Level 0 DFD
+└─ [my-api] 버블
+       │  입력: Client의 HTTP 인증 요청 (credentials, Bearer token)
+       ▼
+src/auth — Level 1 DFD (아래 상세)
+       │  출력: access_token, decoded payload 또는 401
+       ▼
+Client, NextHandler
+```
+
+## DFD — Level 1 (Main Processes)
+
+> Decomposed from: `/` Level 0 — `my-api` 버블
 
 ```mermaid
 flowchart LR
-    Client([Client]) -->|credentials| LoginHandler[LoginHandler]
-    LoginHandler -->|verify| UserDB[(User DB)]
-    UserDB -->|user record| LoginHandler
-    LoginHandler -->|sign| JWTService[JWT Service]
-    JWTService -->|access_token| Client
-    Client -->|Bearer token| AuthMiddleware[Auth Middleware]
-    AuthMiddleware -->|decoded payload| NextHandler([Next Handler])
-    AuthMiddleware -->|401| Client
+    Client([Client]) -->|credentials| Login[LoginHandler]
+    Login -->|verify| DB[(PostgreSQL)]
+    DB -->|user record| Login
+    Login -->|sign| JWT[JWTService]
+    JWT -->|access_token| Client
+    Client -->|Bearer token| Middleware[AuthMiddleware]
+    Middleware -->|decoded payload| Next([NextHandler])
+    Middleware -->|401| Client
+    JWT -->|store| Cache[(Redis)]
 ```
 
 ## Tech Stack
-
-- Node.js 20 / Express 4
-- jsonwebtoken 9.x
-- bcrypt 5.x
-- PostgreSQL (pg 8.x)
+- jsonwebtoken 9.x, bcrypt 5.x (상위 스택 외 추가분)
 
 ## Agent Control
-
+> 상위 규칙 참조: `/README.md` — Agent Control
 ### 금지
-- JWT secret을 코드에 하드코딩 금지 (`process.env.JWT_SECRET` 사용)
+- JWT secret 하드코딩 금지 (`process.env.JWT_SECRET` 사용)
 - 비밀번호 평문 저장 금지
-- 토큰 검증 로직을 미들웨어 외부에 분산 금지
-
 ### 필수
-- 새 엔드포인트 추가 시 이 파일의 DFD 업데이트
-- 인증 실패 시 에러 메시지에 구체적 사유 노출 금지 (보안)
+- 새 엔드포인트 추가 시 이 DFD와 루트 Level 0 DFD 동시 업데이트
+- 작업 완료 시 루트 `/README.md` Progress Tracker 업데이트
+```
 
-## Progress Tracker
+---
 
-| Feature | Status | Assignee | Last Updated | Notes |
-|---------|--------|----------|--------------|-------|
-| JWT 발급 | ✅ Done | Agent | 2025-01-10 | RS256 알고리즘 |
-| JWT 검증 미들웨어 | ✅ Done | Agent | 2025-01-10 | |
-| Refresh Token | 🔄 In Progress | Agent | 2025-01-12 | Redis 연동 필요 |
-| OAuth Google | ⏳ Pending | - | - | |
-| 2FA (TOTP) | ⏳ Pending | - | - | |
+### 예시 C — `src/auth/handlers/README.md` (2단계 하위, Level 2)
 
-## Next Roadmap
+```markdown
+# handlers — Overview
 
-1. Refresh Token 엔드포인트 완성 (`POST /auth/refresh`)
-2. Redis를 통한 토큰 블랙리스트 구현
-3. Google OAuth 콜백 핸들러 추가
+> **상위 작업 연결**: `src/auth` Context의 `LoginHandler`, `AuthMiddleware` 버블을 구현합니다.
+
+HTTP 요청을 파싱해 인증 서비스로 위임하고 응답을 조립합니다.
+
+---
+
+## Context — 상위 흐름과의 연결
+
+```
+src/auth — Level 1 DFD
+└─ [LoginHandler], [AuthMiddleware] 버블
+       │  입력: req.body.credentials / req.headers.authorization
+       ▼
+src/auth/handlers — Level 2 DFD (아래 상세)
+       │  출력: { access_token } / { payload } / 401 response
+       ▼
+Client, JWTService
+```
+
+## DFD — Level 2 (Detailed Processes)
+
+> Decomposed from: `src/auth` Level 1 — `LoginHandler`, `AuthMiddleware` 버블
+
+```mermaid
+flowchart LR
+    Req([HTTP Request]) --> Validate[Input Validator]
+    Validate -->|valid| AuthService[[AuthService]]
+    Validate -->|invalid| Error[ErrorFormatter]
+    AuthService -->|token| Res([HTTP Response])
+    AuthService -->|fail| Error
+    Error --> Res
+```
+
+## Tech Stack
+- express-validator 7.x (상위 스택 외 추가분)
+
+## Agent Control
+> 상위 규칙 참조: `src/auth/README.md` — Agent Control
+### 필수
+- 핸들러에서 비즈니스 로직 직접 작성 금지 (AuthService 위임)
+- 작업 완료 시 루트 `/README.md` Progress Tracker 업데이트
 ```

@@ -77,6 +77,7 @@ flowchart LR
 |------|------|------|
 | `AGENT_BOOTSTRAP.md` | 최초 1회 읽고 삭제하는 초기화 파일 — 전체 규칙 요약 + AGENT_STATE 생성 지시 | **일회용** (읽고 즉시 삭제) |
 | `AGENT_STATE.md` | 매 세션 읽고 갱신하는 경량 상태 파일 — 누적 요구사항·진행 현황·세션 로그 | **영구 유지** (세션마다 갱신) |
+| `AGENT_STATE_ARCHIVE.md` | 누적 요구사항 20행 초과 시 오래된 항목을 이동하는 아카이브 파일 | **영구 유지** (자동 증가) |
 
 ### 폴더 README 템플릿 (Folder README Templates)
 
