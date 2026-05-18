@@ -86,3 +86,10 @@ flowchart LR
 | `README_TEMPLATE_SUB.md` | Context·DFD·Agent Control만 갖는 하위 폴더용 | Level 1, 2, 3+ 모든 하위 |
 | `FOLDER_CHECKLIST.md` | 새 폴더 생성 시 4단계 체크리스트 (유형 결정 → 항목 확인 → 상위 업데이트) | 폴더 생성 시마다 |
 | `README_TEMPLATE.md` | (구버전) 레벨 미지정 범용 템플릿 — 신규 사용 비권장 | — |
+
+### 프로젝트 적용 가이드 (Onboarding Guides)
+
+| 파일 | 용도 |
+|------|------|
+| `FIRST_PROMPTS.md` | 프로젝트 유형별(React, Node API, Python, 풀스택) 첫 프롬프트 모음 — 복사해서 바로 사용 |
+| `MIGRATION_GUIDE.md` | 기존 코드베이스에 프레임워크를 점진적으로 적용하는 3단계 가이드 |

@@ -11,9 +11,10 @@
 ```
 1. 이 파일 전체를 읽는다
 2. 루트 README.md → Progress Tracker 현재 상태 확인
-3. AGENT_STATE.md 파일을 생성한다  ← 아래 §5 초기화 지시 참고
-4. 이 파일(AGENT_BOOTSTRAP.md)을 삭제한다
-5. 삭제 완료 후 사용자에게 "초기화 완료, 이후 AGENT_STATE.md로 운영합니다" 보고
+3. CLAUDE.md가 없으면 templates/CLAUDE_TEMPLATE.md를 복사해 루트에 CLAUDE.md 생성
+4. AGENT_STATE.md 파일을 생성한다  ← 아래 §5 초기화 지시 참고
+5. 이 파일(AGENT_BOOTSTRAP.md)을 삭제한다
+6. 사용자에게 보고: "초기화 완료. CLAUDE.md + AGENT_STATE.md 생성됨. 이후 세션은 자동 로딩됩니다"
 ```
 
 ---

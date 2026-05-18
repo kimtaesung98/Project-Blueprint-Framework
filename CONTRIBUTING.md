@@ -126,3 +126,71 @@ e. 세션 로그             → 오늘 날짜, 수행 작업, 변경 파일, �
 **AGENT_STATE.md 갱신은 기능 커밋에 포함하거나 `docs` 커밋으로 분리합니다.**
 
 예: `feat(auth): add JWT refresh endpoint + update agent state`
+
+---
+
+## §6. DFD 드리프트 감지 프로토콜
+
+DFD는 시간이 지나면 실제 코드와 멀어집니다. 아래 트리거마다 검증을 실행합니다.
+
+### 검증 트리거
+
+- 5회 이상 커밋 후 해당 폴더 DFD 미갱신 상태
+- 새 외부 라이브러리 또는 서비스 추가
+- 폴더 간 데이터 전달 방식 변경
+- `AGENT_STATE.md` Drift Status에 `⚠️ 드리프트 의심` 표시된 항목 존재
+
+### 드리프트 감지 프롬프트
+
+의심되는 폴더에 아래 프롬프트를 실행하세요:
+
+```
+[폴더 경로]의 실제 코드를 읽고,
+현재 README.md의 DFD와 비교해서 불일치 항목을 찾아줘.
+불일치가 있으면 DFD를 코드 기준으로 수정하고,
+상위 폴더 DFD에도 영향이 있으면 함께 업데이트해줘.
+```
+
+### 드리프트 해결 후
+
+- 해당 폴더 DFD 업데이트
+- `AGENT_STATE.md` Drift Status 테이블의 마지막 검증일 갱신
+- 상위 DFD에도 영향이 있었으면 연쇄 업데이트 확인
+
+---
+
+## §7. 멀티 에이전트 / 팀 협업 규칙
+
+여러 사람 또는 여러 세션이 동시에 작업할 때의 충돌 방지 규칙입니다.
+
+### AGENT_STATE.md 충돌 방지
+
+`AGENT_STATE.md`는 **한 번에 한 세션만 수정**합니다.
+
+```
+작업 시작 전: git pull로 최신 STATE 동기화
+작업 종료 후: STATE 갱신 → 즉시 커밋 → push
+```
+
+동시 수정이 발생해 충돌이 생기면:
+1. 두 버전의 세션 로그를 모두 보존 (합치기)
+2. Progress Snapshot은 루트 README.md Tracker 기준으로 재동기화
+3. 누적 요구사항은 양쪽 항목을 모두 유지
+
+### Progress Tracker 충돌 방지
+
+같은 Feature를 두 세션이 동시에 수정하는 것을 막으려면,  
+작업 시작 시 Feature 상태를 `🔄 In Progress`로 먼저 커밋해 점유를 선언합니다.
+
+```
+# 작업 선점 커밋
+git add README.md && git commit -m "chore: claim [Feature명] In Progress"
+git push
+```
+
+다른 세션은 `🔄 In Progress` 상태를 보고 해당 Feature 작업을 건너뜁니다.
+
+### 폴더 소유 원칙
+
+복수의 에이전트/개발자가 협업할 때 **한 폴더는 한 세션이 담당**합니다.  
+동일 폴더를 동시에 수정해야 할 경우 git branch를 분리하고 PR로 통합합니다.
