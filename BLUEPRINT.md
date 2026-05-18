@@ -5,11 +5,49 @@
 
 ---
 
+## DFD — Level 1 (Main Processes)
+
+> Decomposed from: `/` Level 0 — Context Diagram  
+> 이 레벨은 Blueprint Framework 내부의 **주요 구성 문서들이 어떻게 연동**되는지를 나타냅니다.
+
+```mermaid
+flowchart TD
+    subgraph Root ["/ (루트) — Level 0 경계"]
+        BPFMD["BLUEPRINT.md\n(전체 명세)"]
+        CONTRIB["CONTRIBUTING.md\n(에이전트 강령)"]
+        RootREADME["README.md\n(Level 0 DFD)"]
+    end
+
+    subgraph Templates ["templates/ — Level 1 경계"]
+        TMPL["README_TEMPLATE.md"]
+        CHKL["FOLDER_CHECKLIST.md"]
+        TmplREADME["templates/README.md\n(Level 1 DFD)"]
+    end
+
+    subgraph Project ["적용 프로젝트 폴더 — Level 2+ 경계"]
+        FolderREADME["[folder]/README.md\n(Level 2 DFD)"]
+        SubREADME["[folder]/[sub]/README.md\n(Level 3 DFD)"]
+    end
+
+    Developer([Developer]) -->|"① 프레임워크 복사"| Root
+    Root -->|"② 명세 참조"| BPFMD
+    CONTRIB -->|"③ 행동 강령 주입"| AgentSession([AI Agent Session])
+    TMPL -->|"④ 템플릿 복사"| FolderREADME
+    CHKL -->|"⑤ 완성도 검증"| FolderREADME
+    FolderREADME -->|"⑥ 컨텍스트 제공"| AgentSession
+    AgentSession -->|"⑦ Tracker 업데이트"| FolderREADME
+    FolderREADME -->|"Level 2 분해"| SubREADME
+    SubREADME -->|"⑧ 세부 컨텍스트 제공"| AgentSession
+```
+
+---
+
 ## 목차
 
 1. [프레임워크 개요](#1-프레임워크-개요)
 2. [폴더 README 구조 명세](#2-폴더-readme-구조-명세)
 3. [DFD 작성 가이드](#3-dfd-작성-가이드)
+   - [3-1. DFD 레벨링 규칙](#3-1-dfd-레벨링-규칙)
 4. [Progress Tracker 규칙](#4-progress-tracker-규칙)
 5. [Agent Control 섹션 규칙](#5-agent-control-섹션-규칙)
 6. [전체 적용 예시](#6-전체-적용-예시)
@@ -60,12 +98,61 @@ mermaid `flowchart` 또는 `sequenceDiagram`을 사용해 이 폴더가 처리�
 
 에이전트는 이 다이어그램을 읽고, 자신이 수정할 코드가 이 흐름을 깨는지 검토해야 합니다.
 
-### 작성 규칙
+---
+
+### 3-1. DFD 레벨링 규칙
+
+폴더 깊이에 따라 DFD의 **추상화 수준**이 결정됩니다.  
+상위 DFD의 버블(Process) 하나를 하위 DFD 전체로 확대(Decompose)하는 방식입니다.
+
+#### 레벨별 정의
+
+| 레벨 | 폴더 깊이 | 표현 범위 | 헤더 표기 |
+|------|-----------|-----------|-----------|
+| **Level 0** | 루트 `/` | 시스템 전체를 단일 버블로, 외부 액터와 경계만 표시 | `## DFD — Level 0 (Context Diagram)` |
+| **Level 1** | 1단계 하위 (`/src`, `/api` 등) | 루트의 단일 버블을 주요 서브시스템으로 분해 | `## DFD — Level 1 (Main Processes)` |
+| **Level 2** | 2단계 하위 (`/src/auth` 등) | Level 1의 버블 하나를 모듈 내부 흐름으로 분해 | `## DFD — Level 2 (Detailed Processes)` |
+| **Level 3+** | 3단계+ (`/src/auth/handlers` 등) | 함수/컴포넌트 수준의 입출력 | `## DFD — Level 3 (Function Level)` |
+
+#### 필수 표기 규칙
+
+각 DFD 섹션 헤더 바로 아래에 **어느 상위 버블을 분해했는지** 반드시 명시합니다:
+
+```markdown
+## DFD — Level 2 (Detailed Processes)
+
+> Decomposed from: `/src` Level 1 — `[Auth Process]` 버블
+```
+
+#### 레벨 간 일관성 규칙
+
+- 하위 DFD의 **외부 입력/출력**은 상위 DFD에서 해당 버블로 들어오고 나가는 화살표와 **정확히 일치**해야 합니다.
+- 상위 DFD에 없는 외부 의존성이 하위 DFD에 등장할 경우, **상위 DFD도 함께 업데이트**해야 합니다.
+- 에이전트는 하위 폴더 작업 전 상위 폴더의 DFD를 읽어 자신이 수정할 버블의 입출력을 확인해야 합니다.
+
+#### 레벨링 시각화 예시
+
+```
+/ (Level 0)
+└─ [ Blueprint Framework ] ──────────────────────────────────── 단일 버블
+        │
+        ▼ Decompose
+/templates (Level 1)
+└─ [ Template Copy ] → [ README 생성 ] → [ 검증 ] ────────── 서브프로세스 분해
+                              │
+                              ▼ Decompose
+/templates/partials (Level 2)
+└─ [ DFD 섹션 생성 ] → [ Tracker 섹션 생성 ] → [ Control 섹션 생성 ] ── 내부 상세
+```
+
+---
+
+### 작성 규칙 (공통)
 
 - `mermaid` 코드 블록 안에 작성
 - 노드 이름은 영어, 화살표 레이블은 한/영 혼용 가능
 - 외부 시스템(DB, API, 다른 모듈)은 `[[ ]]` 또는 `[(DB)]` 표기
-- 변경 시 반드시 에이전트가 업데이트
+- 변경 시 반드시 에이전트가 업데이트하며, 하위→상위 일관성 검토 포함
 
 ### 예시 — REST API 서버의 `/api` 폴더
 

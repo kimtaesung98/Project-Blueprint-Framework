@@ -12,13 +12,26 @@
 
 ---
 
-## DFD (Data Flow Diagram)
+## DFD — Level [[ N ]] ([[ 레벨명 ]])
 
 <!--
-  데이터의 진입점(Input) → 처리(Process) → 출력(Output) 흐름을 mermaid로 시각화하세요.
-  BLUEPRINT.md의 §3 DFD 작성 가이드를 참고하세요.
-  구조 변경 시 반드시 이 섹션을 업데이트하세요.
+  ① 이 폴더의 깊이에 맞는 레벨을 선택해 헤더를 교체하세요:
+      루트(/)                     → Level 0 (Context Diagram)
+      1단계 하위 (/src 등)        → Level 1 (Main Processes)
+      2단계 하위 (/src/auth 등)   → Level 2 (Detailed Processes)
+      3단계+ 하위                 → Level 3+ (Function Level)
+
+  ② 반드시 아래 'Decomposed from' 줄을 채우세요.
+      루트라면 이 줄을 삭제해도 됩니다.
+
+  ③ 이 DFD의 외부 입력/출력은 상위 DFD 해당 버블의 화살표와 일치해야 합니다.
+  
+  ④ 구조 변경 시 이 섹션과 상위 폴더의 DFD를 함께 업데이트하세요.
+  
+  자세한 레벨링 규칙은 BLUEPRINT.md §3-1을 참고하세요.
 -->
+
+> Decomposed from: `[[ 상위 폴더 경로 ]]` Level [[ N-1 ]] — `[[ 상위 DFD에서 이 폴더에 해당하는 버블명 ]]` 버블
 
 ```mermaid
 flowchart LR
