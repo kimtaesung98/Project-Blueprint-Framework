@@ -1,4 +1,4 @@
-# [폴더명] — Overview
+# [[ 폴더명 ]] — Overview
 
 <!--
   ⛔ DEPRECATED — 이 템플릿은 더 이상 사용하지 않습니다.
@@ -19,11 +19,11 @@
 ## DFD — Level [[ N ]] ([[ 레벨명 ]])
 
 <!--
-  ① 이 폴더의 깊이에 맞는 레벨을 선택해 헤더를 교체하세요:
-      루트(/)                     → Level 0 (Context Diagram)
-      1단계 하위 (/src 등)        → Level 1 (Main Processes)
-      2단계 하위 (/src/auth 등)   → Level 2 (Detailed Processes)
-      3단계+ 하위                 → Level 3+ (Function Level)
+  ① 레벨 = 상위 README의 레벨 + 1 (파일 시스템 깊이가 아님):
+      소유자 폴더(보통 루트)        → Level 0 (Context Diagram)
+      Level 0 버블을 분해한 폴더    → Level 1 (Main Processes)
+      Level 1 버블을 분해한 폴더    → Level 2 (Detailed Processes)
+      그 이하                       → Level 3+ (Function Level)
 
   ② 반드시 아래 'Decomposed from' 줄을 채우세요.
       루트라면 이 줄을 삭제해도 됩니다.
@@ -32,7 +32,7 @@
   
   ④ 구조 변경 시 이 섹션과 상위 폴더의 DFD를 함께 업데이트하세요.
   
-  자세한 레벨링 규칙은 BLUEPRINT.md §3-1을 참고하세요.
+  자세한 레벨링 규칙은 BLUEPRINT.md §4-1을 참고하세요.
 -->
 
 > Decomposed from: `[[ 상위 폴더 경로 ]]` Level [[ N-1 ]] — `[[ 상위 DFD에서 이 폴더에 해당하는 버블명 ]]` 버블
@@ -63,7 +63,7 @@ flowchart LR
 > 이 섹션의 규칙은 에이전트가 이 폴더의 코드를 수정할 때 **반드시** 따라야 합니다.
 
 <!--
-  BLUEPRINT.md의 §5 Agent Control 섹션 규칙을 참고해 작성하세요.
+  BLUEPRINT.md의 §6 Agent Control 섹션 규칙을 참고해 작성하세요.
   이 폴더의 아키텍처 원칙에 맞게 구체적으로 기술할수록 효과가 높아집니다.
 -->
 
