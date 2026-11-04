@@ -15,9 +15,9 @@ flowchart LR
     Agent([AI Agent])
     Codebase([Project Codebase])
 
-    Developer -->|"① 명세 작성 + 템플릿 복사<br>(SPEC.md · README)"| BPF["Blueprint<br>Framework<br>(Level 0)"]
+    Developer -->|"① 명세 작성 + 템플릿 복사<br>(SPEC · ARCHITECTURE · README)"| BPF["Blueprint<br>Framework<br>(Level 0)"]
     Agent -->|"② 작업 전 컨텍스트 요청<br>(CLAUDE.md · STATE · README)"| BPF
-    BPF -->|"③ 구조화된 문서 제공<br>(SPEC · DFD · Tracker · Control)"| Agent
+    BPF -->|"③ 구조화된 문서 제공<br>(SPEC · ARCH · DFD · Tracker · Control)"| Agent
     BPF -->|"④ Agent Control 규칙 적용"| Codebase
     Agent -->|"⑤ 코드 수정 + Tracker 업데이트"| Codebase
     Codebase -->|"⑥ 진행 현황 피드백"| Developer
@@ -50,23 +50,27 @@ AI 에이전트는 단일 파일 수준에서는 탁월한 성능을 보이지�
 - 데이터 흐름을 오해해 의도치 않은 사이드 이펙트 발생
 - 이미 구현된 기능을 중복 구현하거나 미구현 기능을 건너뜀
 - 폴더별 아키텍처 원칙(Pure Function, 의존성 제한 등)을 무시
+- 세션마다 다른 라이브러리를 고르고, 이미 내린 기술 결정을 모르고 뒤집음
 
-Blueprint Framework는 **명세(SPEC.md)로 "무엇을"을, 폴더별 `README.md`로 "어떻게"를** 정의합니다.  
+Blueprint Framework는 **SPEC.md로 "무엇을"을, ARCHITECTURE.md로 "무엇으로·어떤 구조로"를, 폴더별 `README.md`로 "어떻게 흐르는지"를** 정의합니다.  
 에이전트가 작업 전 필요한 문서만 읽도록 강제해 위 문제를 구조적으로 차단합니다.
 
-### 네 가지 핵심 장치
+### 다섯 가지 핵심 장치
 
 | 장치 | 위치 | 역할 |
 |------|------|------|
 | **SPEC (기능 명세)** | 루트 `SPEC.md` | 기능 ID(F-001)별 사용자 스토리와 **수용 기준** — "완료"의 정의 |
+| **ARCHITECTURE (아키텍처 명세)** | 루트 `ARCHITECTURE.md` | 기술 스택 · **허용 라이브러리** · 모듈 의존 규칙 · ADR — "무엇으로, 어떤 구조로"의 정의 |
 | **DFD (Data Flow Diagram)** | 각 폴더 `README.md` | 데이터 흐름을 시각화하여 흐름을 깨는 코드 작성 방지 |
 | **Progress Tracker** | 소유자 `README.md` | 기능 ID별 구현 현황, 에이전트가 직접 업데이트 |
 | **Agent Control** | 각 폴더 `README.md` | 폴더별 행동 제약 — 에이전트의 폴더 수준 System Prompt |
 
-세 문서는 **기능 ID 하나로 연결**됩니다:
+명세·진행·흐름은 **기능 ID 하나로**, 구조는 **모듈과 ADR**로 연결됩니다:
 
 ```
 SPEC.md  F-003 (수용 기준)  ──▶  README.md Tracker  F-003 (상태 · Owner Folder)  ──▶  /src/auth/README.md (DFD · Agent Control)
+                                                                                          ▲
+ARCHITECTURE.md  §3.2 auth 모듈 (의존 가능: domain) · §2.2 허용 라이브러리 · ADR-004 ──────┘
 ```
 
 ---
@@ -84,6 +88,7 @@ project-blueprint-framework/              ← Level 0 DFD (Context)
     │
     │   ── 명세 ──
     ├── SPEC_TEMPLATE.md                  # → 프로젝트 루트 SPEC.md (기능 명세 · 수용 기준)
+    ├── ARCHITECTURE_TEMPLATE.md          # → 프로젝트 루트 ARCHITECTURE.md (스택 · 모듈 · ADR)
     │
     │   ── 폴더 README ──
     ├── README_TEMPLATE_TOP.md            # 소유자 폴더용 (Tracker · Roadmap 보유)
@@ -114,15 +119,18 @@ project-blueprint-framework/              ← Level 0 DFD (Context)
 | 복사할 파일 | 프로젝트에서의 이름 |
 |---|---|
 | `templates/SPEC_TEMPLATE.md` | `SPEC.md` |
+| `templates/ARCHITECTURE_TEMPLATE.md` | `ARCHITECTURE.md` |
 | `templates/README_TEMPLATE_TOP.md` | `README.md` |
 | `templates/CLAUDE_TEMPLATE.md` | `CLAUDE.md` |
 | `templates/AGENT_BOOTSTRAP.md` | `AGENT_BOOTSTRAP.md` |
 | `CONTRIBUTING.md`, `templates/` 폴더 | 그대로 (`AGENT_STATE.md`는 초기화 때 BOOTSTRAP이 templates에서 복사) |
 
-### 2. SPEC.md를 먼저 채운다
+### 2. SPEC.md → ARCHITECTURE.md 순서로 채운다
 
-최소한 **개요, MVP 범위, 기능 목록(F-ID), MVP 기능의 수용 기준**은 사람이 직접 채웁니다.  
-나머지 섹션은 에이전트와 함께 채워도 됩니다.
+- **SPEC.md**: 최소한 개요, MVP 범위, 기능 목록(F-ID), MVP 기능의 수용 기준
+- **ARCHITECTURE.md**: 최소한 기술 스택, 허용 라이브러리, 모듈 맵·의존 규칙, 그렇게 정한 이유(ADR)
+
+결정은 사람이 하고, 초안은 에이전트와 함께 써도 됩니다 ([`FIRST_PROMPTS.md`](./templates/FIRST_PROMPTS.md)의 "함께 작성하기" 프롬프트).
 
 ### 3. Claude Code 첫 세션
 
@@ -140,9 +148,10 @@ Level 0 DFD를 작성해.
 
 ## 핵심 원칙
 
-1. **"무엇을"은 SPEC.md, "얼마나 됐나"는 소유자 Tracker, "어떻게"는 폴더 README** — 각각 한 곳에서만 정의한다
+1. **"무엇을"은 SPEC.md, "무엇으로·어떤 구조로"는 ARCHITECTURE.md, "얼마나 됐나"는 소유자 Tracker, "어떻게 흐르나"는 폴더 README** — 각각 한 곳에서만 정의한다
 2. **에이전트는 작업 전 해당 기능의 SPEC 항목과 담당 폴더 `README.md`를 읽는다**
 3. **수용 기준을 모두 통과해야 `✅ Done`이다**
-4. **구조 변경 시 `DFD`를 최신 상태로 유지한다**
+4. **허용 목록 밖의 라이브러리 추가와 ADR을 뒤집는 변경은 에이전트가 제안만 한다**
+5. **구조 변경 시 `DFD`와 `ARCHITECTURE.md`를 최신 상태로 유지한다**
 
 자세한 규칙은 [CONTRIBUTING.md](./CONTRIBUTING.md) 및 [BLUEPRINT.md](./BLUEPRINT.md)를 참고하세요.

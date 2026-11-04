@@ -5,6 +5,32 @@
 
 ---
 
+## [2.1.0] — 2026-11-04
+
+### Added
+- **ARCHITECTURE 층**: `templates/ARCHITECTURE_TEMPLATE.md` 추가. 기술 스택(버전·상태·근거 ADR), 허용 라이브러리 목록, 구성도, 모듈 맵·의존 규칙, 내부 인터페이스, 런타임 시나리오, 배포·환경변수, 횡단 관심사, 품질 속성 대응, ADR, 진화 계획, 기술 부채
+- 파일 머리에 "이런 작업을 할 때 → 읽을 절" 표 — 에이전트가 세션마다 전체를 읽지 않도록
+- ADR 상태(제안/승인/대체됨/폐기)와 "에이전트는 제안만" 규칙
+- `FIRST_PROMPTS.md` "ARCHITECTURE.md 함께 작성하기", `MIGRATION_GUIDE.md` Step 1-4(의존성·import 역공학)
+- `FOLDER_CHECKLIST.md` 6번째 검증 질문 (import 가능한 모듈·라이브러리)
+
+### Changed
+- 정보 소유 규칙을 네 층으로 확장: 명세(SPEC) · **구조(ARCHITECTURE)** · 진행(Tracker) · 흐름(폴더 README)
+- **ADR을 SPEC.md §8 → ARCHITECTURE.md §9로 이동**. SPEC §8은 절 번호 유지를 위해 링크만 남김
+- 루트 README Tech Stack은 **이름만 적은 요약 + 링크** (버전은 ARCHITECTURE.md §2.1에만)
+- 폴더 README Tech Stack은 ARCHITECTURE.md §2.2 허용 목록 안에서만
+- `BLUEPRINT.md` §2를 "명세 문서 규칙"으로 바꾸고 §2-1 SPEC, §2-2 ARCHITECTURE로 나눔 (다른 절 번호는 유지)
+- CLAUDE.md·CONTRIBUTING·BOOTSTRAP 세션 프로토콜에 ARCHITECTURE 확인 단계 추가 (CONTRIBUTING §2 작업 중 단계 번호가 하나씩 밀림)
+- 새 외부 의존성 연쇄 업데이트 규칙에 ARCHITECTURE.md §2.1 · §3.1 추가
+
+### 기존 프로젝트 업그레이드
+1. `templates/ARCHITECTURE_TEMPLATE.md`를 루트 `ARCHITECTURE.md`로 복사
+2. SPEC.md §8 ADR 표를 ARCHITECTURE.md §9로 옮기고, 각 ADR에 상태 열 추가 (기존 것은 "승인")
+3. 루트 README Tech Stack의 버전·이유를 ARCHITECTURE.md §2.1로 옮기고 README에는 이름 + 링크만
+4. `CLAUDE.md`에 "구조" 규칙 블록 추가 (`templates/CLAUDE_TEMPLATE.md` 참고)
+
+---
+
 ## [2.0.0] — 2026-11-02
 
 ### Added
